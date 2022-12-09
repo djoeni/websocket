@@ -186,8 +186,21 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 		return nil, nil, errMalformedURL
 	}
 
+	httpMethod := "GET"
+	pathUnescape , _ := url.QueryUnescape(u.Path)
+	pathTrimmed := strings.TrimPrefix(pathUnescape, "/")
+	pathReplace := strings.Replace(pathTrimmed, " ", ":", 1)
+	pathSplited := strings.Split(pathReplace, ":")
+	pathLen := len(pathSplited)
+	if(pathLen == 2) {
+		u.Opaque = pathTrimmed
+	} else if(pathLen == 3) {
+		httpMethod = pathSplited[0]
+		u.Opaque = pathSplited[1] + ":" + pathSplited[2]
+	}
+
 	req := &http.Request{
-		Method:     http.MethodGet,
+		Method:     httpMethod,
 		URL:        u,
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
